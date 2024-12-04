@@ -5,47 +5,51 @@
 #include <atomic>
 
 
-namespace
+class ExternalRefCounter
 {
-    class ExternalRefCounter
-    {
-    public:
-        std::unordered_map<void*, std::atomic<unsigned int>> ref_map;
-    };
-}
+public:
+    std::unordered_map<void*, std::atomic<unsigned int>> ref_map;
+};
 
 static ExternalRefCounter ref_counter;
 
 
+/*
+ *  SMART POINTER
+ *  This class is a simple implementation of a smart pointer.
+ */
+
 //SHARED POINTER
 template <class Type>
-class SharedPointer
+class smart_pointers
 {
 public:
-    constexpr SharedPointer() noexcept = default;
+    constexpr smart_pointers() noexcept = default;
 
 
-    explicit SharedPointer(Type* ptr)
+    explicit smart_pointers(Type* ptr)
     {
-        if (ref_counter.ref_map.find(ptr) != ref_counter.ref_map.end())
+        auto it = ref_counter.ref_map.find(ptr);
+
+        if (it != ref_counter.ref_map.end())
         {
             ++ref_counter.ref_map[ptr];
         }
         else
         {
-            ref_counter.ref_map[ptr].store(1, std::memory_order_relaxed);
+            ref_counter.ref_map[ptr].store(1, std::memory_order_release);
         }
     }
 
-    explicit SharedPointer(const SharedPointer& other)
+    explicit smart_pointers(const smart_pointers& other)
     {
         pointer_ = other.pointer_;
         ++ref_counter.ref_map[pointer_];
     }
 
-    ~SharedPointer()
+    ~smart_pointers()
     {
-        if (ref_counter.ref_map[pointer_].load() == 1)
+        if (ref_counter.ref_map[pointer_].load(std::memory_order_acquire) == 1)
         {
             delete pointer_;
             pointer_ = nullptr;
@@ -57,7 +61,7 @@ public:
         }
     }
 
-    SharedPointer& operator=(const SharedPointer& other)
+    smart_pointers& operator=(const smart_pointers& other)
     {
         if (this == &other)
         {
@@ -73,19 +77,49 @@ public:
         return pointer_;
     }
 
+    Type operator*() const
+    {
+        return *pointer_;
+    }
+
+    explicit operator bool() const
+    {
+        return pointer_ != nullptr;
+    }
+
+    Type operator[](int index) const
+    {
+        return pointer_[index];
+    }
+
+    Type* get() const
+    {
+        return pointer_;
+    }
+
+    [[nodiscard]] bool unique() const
+    {
+        return ref_counter.ref_map[pointer_].load() == 1;
+    }
+
+    [[nodiscard]] std::size_t use_count() const
+    {
+        return ref_counter.ref_map[pointer_].load();
+    }
+
 private:
     Type* pointer_ = nullptr;
 };
 
-std::weak_ptr<int> b;
 
-template <class T>
+//WEAK POINTER ---->
+template <class Type>
 class WeakPointer
 {
 public:
-    constexpr WeakPointer() noexcept = default;
+    constexpr WeakPointer() = default;
 
-    explicit WeakPointer(const SharedPointer<T>& shared_ptr) noexcept
+    explicit WeakPointer(const smart_pointers<Type>& shared_ptr) noexcept
     {
         pointer_ = shared_ptr.pointer_;
     }
@@ -102,18 +136,38 @@ public:
         return *this;
     }
 
-    bool expired() const
-    {
-        return ref_counter.ref_map.find(pointer_) == ref_counter.ref_map.end();
-    }
-
-    T* operator->() const
+    Type* operator->() const noexcept
     {
         return pointer_;
     }
 
+    Type operator*() const
+    {
+        return *pointer_;
+    }
+
+    explicit operator bool() const
+    {
+        return pointer_ != nullptr;
+    }
+
+    [[nodiscard]] bool expired() const
+    {
+        return ref_counter.ref_map.find(pointer_) == ref_counter.ref_map.end();
+    }
+
+    [[nodiscard]] std::size_t use_count() const
+    {
+        return ref_counter.ref_map[pointer_].load();
+    }
+
+    smart_pointers<Type> lock() const
+    {
+        return smart_pointers<Type>(pointer_);
+    }
+
 private:
-    T* pointer_ = nullptr;
+    Type* pointer_ = nullptr;
 };
 
 
