@@ -3,73 +3,86 @@
 
 #include <unordered_map>
 #include <atomic>
+#include <mutex>
 
+
+std::mutex mtx;
 
 class ExternalRefCounter
 {
 public:
+
+    //TODO: add mutex for thread safety
     std::unordered_map<void*, std::atomic<unsigned int>> ref_map;
 };
 
 static ExternalRefCounter ref_counter;
 
-
-/*
- *  SMART POINTER
- *  This class is a simple implementation of a smart pointer.
- */
-
 //SHARED POINTER
 template <class Type>
-class smart_pointers
+class SharedPointer
 {
 public:
-    constexpr smart_pointers() noexcept = default;
+    constexpr SharedPointer() noexcept = default;
 
 
-    explicit smart_pointers(Type* ptr)
+    explicit SharedPointer(Type* ptr)
     {
         auto it = ref_counter.ref_map.find(ptr);
 
         if (it != ref_counter.ref_map.end())
         {
-            ++ref_counter.ref_map[ptr];
+            ref_counter.ref_map[ptr].fetch_add(1, std::memory_order_acq_rel);
         }
         else
         {
-            ref_counter.ref_map[ptr].store(1, std::memory_order_release);
+            ref_counter.ref_map[ptr].store(1, std::memory_order_acq_rel);
         }
     }
 
-    explicit smart_pointers(const smart_pointers& other)
+    explicit SharedPointer(const SharedPointer& other)
     {
         pointer_ = other.pointer_;
-        ++ref_counter.ref_map[pointer_];
+        ref_counter.ref_map[pointer_].fetch_add(1,std::memory_order_acq_rel);
     }
 
-    ~smart_pointers()
+    ~SharedPointer()
     {
-        if (ref_counter.ref_map[pointer_].load(std::memory_order_acquire) == 1)
+        if (ref_counter.ref_map[pointer_].load(std::memory_order_acq_rel) == 1)
         {
+            ref_counter.ref_map.erase(pointer_);
             delete pointer_;
             pointer_ = nullptr;
-            ref_counter.ref_map.erase(pointer_);
         }
         else
         {
-            --ref_counter.ref_map[pointer_];
+            ref_counter.ref_map[pointer_].fetch_sub(1);
         }
     }
 
-    smart_pointers& operator=(const smart_pointers& other)
+    SharedPointer& operator=(const SharedPointer& other)
     {
         if (this == &other)
         {
             return *this;
         }
-        pointer_ = other.pointer_;
-        ++ref_counter.ref_map[pointer_];
-        return *this;
+
+        if(pointer_ == other.pointer_)
+        {
+            return *this;
+        }
+
+        if(pointer_ == nullptr)
+        {
+            pointer_ = other.pointer_;
+            ref_counter.ref_map[pointer_].fetch_add(1);
+        }
+        else
+        {
+            ref_counter.ref_map[pointer_].fetch_sub(1);
+            pointer_ = other.pointer_;
+            ref_counter.ref_map[pointer_].fetch_add(1);
+        }
     }
 
     Type* operator->() const
@@ -119,7 +132,7 @@ class WeakPointer
 public:
     constexpr WeakPointer() = default;
 
-    explicit WeakPointer(const smart_pointers<Type>& shared_ptr) noexcept
+    explicit WeakPointer(const SharedPointer<Type>& shared_ptr) noexcept
     {
         pointer_ = shared_ptr.pointer_;
     }
@@ -161,9 +174,9 @@ public:
         return ref_counter.ref_map[pointer_].load();
     }
 
-    smart_pointers<Type> lock() const
+    SharedPointer<Type> lock() const
     {
-        return smart_pointers<Type>(pointer_);
+        return SharedPointer<Type>(pointer_);
     }
 
 private:
