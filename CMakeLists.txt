@@ -3,5 +3,7 @@ project(SmartPointers)
 
 set(CMAKE_CXX_STANDARD 23)
 
-add_executable(SmartPointers main.cpp
-        SharedPointer/SharedPointer.h)
+include(FetchContent)
+
+add_subdirectory(SmartPointers)
+add_subdirectory(GoogleTests)

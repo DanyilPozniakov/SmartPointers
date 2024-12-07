@@ -6,13 +6,11 @@
 #include <mutex>
 
 
-std::mutex mtx;
 
 class ExternalRefCounter
 {
 public:
 
-    //TODO: add mutex for thread safety
     std::unordered_map<void*, std::atomic<unsigned int>> ref_map;
 };
 
@@ -125,7 +123,7 @@ private:
 };
 
 
-//WEAK POINTER ---->
+//WEAK POINTER
 template <class Type>
 class WeakPointer
 {
@@ -182,6 +180,17 @@ public:
 private:
     Type* pointer_ = nullptr;
 };
+
+// INTRUSTIVE POINTER
+
+class RefCounter
+{
+
+};
+
+
+
+
 
 
 #endif //SMARTPOINTER_H
