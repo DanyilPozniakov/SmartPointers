@@ -7,3 +7,4 @@ include(FetchContent)
 
 add_subdirectory(SmartPointers)
 add_subdirectory(GoogleTests)
+add_subdirectory(Benchmarks)
