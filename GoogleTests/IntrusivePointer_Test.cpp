@@ -7,7 +7,6 @@ public:
     int value;
 };
 
-// Existing tests from previous code...
 
 // Basic construction tests
 TEST(IntrusivePtrTest, DefaultConstruct) {
@@ -368,8 +367,8 @@ TEST(IntrusivePtrTest, MultipleSwaps) {
     p.swap(q);
     q.swap(r);
     r.swap(p);
-    EXPECT_EQ(p->value, 2008);
-    EXPECT_EQ(q->value, 2006);
+    EXPECT_EQ(p->value, 2006);
+    EXPECT_EQ(q->value, 2008);
     EXPECT_EQ(r->value, 2007);
     p.reset();
     q.reset();
@@ -545,15 +544,15 @@ TEST(IntrusivePtrTest, AssignSelfRawPointer) {
 }
 
 TEST(IntrusivePtrTest, SwapInChain) {
-    IntrusivePtr<TestObject> p(new TestObject(2028));
-    IntrusivePtr<TestObject> q(new TestObject(2029));
-    IntrusivePtr<TestObject> r(new TestObject(2030));
+    IntrusivePtr<TestObject> p(new TestObject(1));
+    IntrusivePtr<TestObject> q(new TestObject(2));
+    IntrusivePtr<TestObject> r(new TestObject(3));
     p.swap(q);
     q.swap(r);
     p.swap(r);
-    EXPECT_EQ(p->value, 2029);
-    EXPECT_EQ(q->value, 2030);
-    EXPECT_EQ(r->value, 2028);
+    EXPECT_EQ(p->value, 1);
+    EXPECT_EQ(q->value, 3);
+    EXPECT_EQ(r->value, 2);
     p.reset(); q.reset(); r.reset();
 }
 

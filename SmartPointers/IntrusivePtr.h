@@ -98,9 +98,16 @@ public:
         {
             ref_->Release();
         }
-
-        ref_ = other.ref_;
-        ref_->AddRef();
+        if(other.ref_ == nullptr)
+        {
+            ref_ = nullptr;
+            return *this;
+        }
+        else
+        {
+            ref_ = other.ref_;
+            ref_->AddRef();
+        }
 
         return *this;
     }
@@ -119,21 +126,33 @@ public:
     }
 
     IntrusivePtr& operator=(T* ref) {
-        if (ref_)
-            {
-            ref_->Release();
-        }
 
+        if(ref == ref_)
+        {
+            return *this;
+        }
         if(ref == nullptr)
         {
-            ref_ = nullptr;
+            if(ref_)
+            {
+                ref_->Release();
+                ref_ = nullptr;
+            }
             return *this;
+        }
+
+        if(ref_ != nullptr)
+        {
+            ref_->Release();
+            ref_ = ref;
+            ref_->AddRef();
         }
         else
         {
             ref_ = ref;
             ref_->AddRef();
         }
+
         return *this;
     }
 
