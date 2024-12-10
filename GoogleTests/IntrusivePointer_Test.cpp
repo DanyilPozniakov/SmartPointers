@@ -1,6 +1,7 @@
 #include "IntrusivePtr.h"
 #include <gtest/gtest.h>
 
+
 class TestObject : public RefCounter {
 public:
     TestObject(int v = 0) : value(v) {}

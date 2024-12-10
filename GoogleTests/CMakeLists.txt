@@ -15,7 +15,9 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 add_executable(IntrusivePtrTest IntrusivePointer_Test.cpp)
+add_executable(SharedPtrTest SharedPointer_Test.cpp)
 
+target_link_libraries(SharedPtrTest PUBLIC gtest gtest_main SmartPointers)
 target_link_libraries(IntrusivePtrTest PUBLIC gtest gtest_main SmartPointers)
 
 include(GoogleTest)

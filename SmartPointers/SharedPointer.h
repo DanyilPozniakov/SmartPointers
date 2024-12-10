@@ -6,11 +6,9 @@
 #include <mutex>
 
 
-
 class ExternalRefCounter
 {
 public:
-
     std::unordered_map<void*, std::atomic<unsigned int>> ref_map;
 };
 
@@ -34,19 +32,26 @@ public:
         }
         else
         {
-            ref_counter.ref_map[ptr].store(1, std::memory_order_acq_rel);
+            ref_counter.ref_map[ptr].store(1);
         }
+        pointer_ = ptr;
     }
 
     explicit SharedPointer(const SharedPointer& other)
     {
         pointer_ = other.pointer_;
-        ref_counter.ref_map[pointer_].fetch_add(1,std::memory_order_acq_rel);
+        ref_counter.ref_map[pointer_].fetch_add(1);
+    }
+
+    SharedPointer(SharedPointer&& other) noexcept
+    {
+        pointer_ = other.pointer_;
+        other.pointer_ = nullptr;
     }
 
     ~SharedPointer()
     {
-        if (ref_counter.ref_map[pointer_].load(std::memory_order_acq_rel) == 1)
+        if (ref_counter.ref_map[pointer_].load() == 1)
         {
             ref_counter.ref_map.erase(pointer_);
             delete pointer_;
@@ -65,12 +70,12 @@ public:
             return *this;
         }
 
-        if(pointer_ == other.pointer_)
+        if (pointer_ == other.pointer_)
         {
             return *this;
         }
 
-        if(pointer_ == nullptr)
+        if (pointer_ == nullptr)
         {
             pointer_ = other.pointer_;
             ref_counter.ref_map[pointer_].fetch_add(1);
@@ -83,12 +88,42 @@ public:
         }
     }
 
+    SharedPointer& operator=(SharedPointer&& other) noexcept
+    {
+        if (this == &other)
+        {
+            return *this;
+        }
+
+        if(pointer_ == other.pointer_)
+        {
+            other.pointer_ = nullptr;
+            return *this;
+        }
+
+        if(pointer_ == nullptr)
+        {
+            pointer_ = other.pointer_;
+            other.pointer_ = nullptr;
+        }
+        else
+        {
+            if(ref_counter.ref_map[pointer_].fetch_sub(1) == 1)
+            {
+                ref_counter.ref_map.erase(pointer_);
+                delete pointer_;
+            }
+            pointer_ = other.pointer_;
+            other.pointer_ = nullptr;
+        }
+    }
+
     Type* operator->() const
     {
         return pointer_;
     }
 
-    Type operator*() const
+    Type& operator*() const
     {
         return *pointer_;
     }
@@ -116,6 +151,21 @@ public:
     [[nodiscard]] std::size_t use_count() const
     {
         return ref_counter.ref_map[pointer_].load();
+    }
+
+    void reset()
+    {
+        if (pointer_ != nullptr, ref_counter.ref_map[pointer_].load() == 1)
+        {
+            delete pointer_;
+            ref_counter.ref_map.erase(pointer_);
+            pointer_ = nullptr;
+        }
+        else
+        {
+            ref_counter.ref_map[pointer_].fetch_sub(1);
+            pointer_ = nullptr;
+        }
     }
 
 private:
@@ -180,17 +230,6 @@ public:
 private:
     Type* pointer_ = nullptr;
 };
-
-// INTRUSTIVE POINTER
-
-class RefCounter
-{
-
-};
-
-
-
-
 
 
 #endif //SMARTPOINTER_H
