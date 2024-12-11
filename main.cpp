@@ -1,8 +1,4 @@
-#include <iostream>
 #include <IntrusivePtr.h>
-
-#include <memory>
-
 
 class A : public RefCounter
 {
@@ -18,9 +14,9 @@ int main()
 {
     A* a = new A(10);
 
+    IntrusivePtr<A> p(a);
 
-    IntrusivePtr<A> b(a);
-    std::cout << b.get()->a << std::endl;
+
     return 0;
 }
 

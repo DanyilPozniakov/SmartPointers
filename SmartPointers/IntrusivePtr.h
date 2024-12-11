@@ -6,10 +6,31 @@
 #include <utility>
 #include <type_traits>
 
+
+// git commit -m "Update GCC support for IntrusivePtr"
+
+class RefCounter;
+
+template <class T>
+concept Intrusive = std::is_base_of_v<RefCounter, T>;
+
 class RefCounter
 {
 public:
     RefCounter() = default;
+
+
+#ifdef _DEBUG
+    [[nodiscard]] unsigned int GetRefCount() const
+    {
+        return ref_count.load();
+    }
+#endif
+
+    virtual ~RefCounter() = default;
+
+private:
+    std::atomic_uint ref_count = 0;
 
     void AddRef()
     {
@@ -24,34 +45,18 @@ public:
         }
     }
 
-#ifdef _DEBUG
-    [[nodiscard]] unsigned int GetRefCount() const
-    {
-        return ref_count.load();
-    }
-#endif
-
-    virtual ~RefCounter() = default;
-
-private:
-    std::atomic_uint ref_count = 0;
+    template <Intrusive T>
+    friend class IntrusivePtr;
 };
 
-
-template <class T>
-concept Intrusive = std::is_base_of_v<RefCounter, T>;
-
-
-template <Intrusive T>
+template <Intrusive Type>
 class IntrusivePtr
 {
 public:
     IntrusivePtr() = default;
 
-    explicit IntrusivePtr(T* ref)
+    explicit IntrusivePtr(Type* ref)
     {
-        assert(ref && "In constructor intrusive pointer received nullptr");
-
         if (ref == nullptr)
         {
             return;
@@ -61,22 +66,18 @@ public:
         ref_->AddRef();
     }
 
-    IntrusivePtr(const IntrusivePtr<T>& other)
+    IntrusivePtr(const IntrusivePtr<Type>& other)
     {
-        assert(other.ref_ && "In constructor intrusive pointer received nullptr");
-        if(other.ref_ == nullptr)
+        if (other.ref_ == nullptr)
         {
             return;
         }
-
         ref_ = other.ref_;
         ref_->AddRef();
     }
 
     IntrusivePtr(IntrusivePtr&& other) noexcept
     {
-        assert(other.ref_ && "In constructor intrusive pointer move received nullptr");
-
         ref_ = other.ref_;
         other.ref_ = nullptr;
     }
@@ -93,7 +94,6 @@ public:
 
     IntrusivePtr& operator=(const IntrusivePtr& other)
     {
-        assert(other.ref_ && "In operator= intrusive pointer received nullptr");
         if (this == &other)
         {
             return *this;
@@ -104,6 +104,12 @@ public:
             ref_->Release();
         }
 
+        if (other.ref_ == nullptr)
+        {
+            ref_ = nullptr;
+            return *this;
+        }
+
         ref_ = other.ref_;
         ref_->AddRef();
 
@@ -112,7 +118,6 @@ public:
 
     IntrusivePtr& operator=(IntrusivePtr&& other)
     {
-        assert(other.ref_ && "In operator=(Intrusive&& other) intrusive pointer move received nullptr");
         if (this == &other)
         {
             return *this;
@@ -124,10 +129,10 @@ public:
         return *this;
     }
 
-    IntrusivePtr& operator=(T* ref)
+    IntrusivePtr& operator=(Type* ref)
     {
-        static_assert(std::is_base_of_v<RefCounter, T>, "T must be derived from RefCounter");
-        assert(ref && "In operator=(T* ref) intrusive pointer received nullptr");
+        static_assert(std::is_base_of_v<RefCounter, Type>, "Type must be derived from RefCounter");
+        //assert(ref && "In operator=(Type* ref) intrusive pointer received nullptr");
         if (ref == ref_)
         {
             return *this;
@@ -157,12 +162,12 @@ public:
         return *this;
     }
 
-    T& operator*() const
+    Type& operator*() const
     {
         return *ref_;
     }
 
-    T* operator->() const
+    Type* operator->() const
     {
         return ref_;
     }
@@ -172,7 +177,7 @@ public:
         return ref_ != nullptr;
     }
 
-    [[nodiscard]] T* get() const
+    [[nodiscard]] Type* get() const
     {
         return ref_;
     }
@@ -196,14 +201,14 @@ public:
     }
 
 private:
-    T* ref_ = nullptr;
+    Type* ref_ = nullptr;
 };
 
 
 template <class T, class... Args>
 static IntrusivePtr<T> make_intrusive(Args&&... args)
 {
-    return IntrusivePtr<T>(new T(std::forward<Args>(args)));
+    return IntrusivePtr<T>(new T(std::forward<Args>(args)...));
 }
 
 #endif //INTRUSIVEPTR_H
