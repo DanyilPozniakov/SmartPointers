@@ -1,6 +1,7 @@
 #ifndef SMARTPOINTER_H
 #define SMARTPOINTER_H
 
+#include <assert.h>
 #include <unordered_map>
 #include <atomic>
 #include <mutex>
@@ -24,6 +25,7 @@ public:
 
     explicit SharedPointer(Type* ptr)
     {
+        assert(ptr && "In constructor shared pointer received nullptr");
         auto it = ref_counter.ref_map.find(ptr);
 
         if (it != ref_counter.ref_map.end())
@@ -39,17 +41,19 @@ public:
 
     explicit SharedPointer(const SharedPointer& other)
     {
+        assert(other.pointer_ && "In constructor shared pointer received nullptr");
         pointer_ = other.pointer_;
         ref_counter.ref_map[pointer_].fetch_add(1);
     }
 
     SharedPointer(SharedPointer&& other) noexcept
     {
+        assert(other.pointer_ && "In constructor shared pointer received nullptr");
         pointer_ = other.pointer_;
         other.pointer_ = nullptr;
     }
 
-    ~SharedPointer()
+    virtual ~SharedPointer()
     {
         if (ref_counter.ref_map[pointer_].load() == 1)
         {
@@ -65,13 +69,17 @@ public:
 
     SharedPointer& operator=(const SharedPointer& other)
     {
+        assert(other.pointer_ && "In operator= shared pointer received nullptr");
+
         if (this == &other)
         {
+            assert(this != &other && "In operator= shared pointer received the same pointer");
             return *this;
         }
 
         if (pointer_ == other.pointer_)
         {
+            assert(pointer_ != other.pointer_ && "In operator= shared pointer received the same pointer");
             return *this;
         }
 
@@ -86,10 +94,14 @@ public:
             pointer_ = other.pointer_;
             ref_counter.ref_map[pointer_].fetch_add(1);
         }
+        return *this;
+
     }
 
     SharedPointer& operator=(SharedPointer&& other) noexcept
     {
+        assert(other.pointer_ && "In operator= shared pointer received nullptr");
+
         if (this == &other)
         {
             return *this;
@@ -116,6 +128,7 @@ public:
             pointer_ = other.pointer_;
             other.pointer_ = nullptr;
         }
+        return *this;
     }
 
     Type* operator->() const
@@ -155,7 +168,7 @@ public:
 
     void reset()
     {
-        if (pointer_ != nullptr, ref_counter.ref_map[pointer_].load() == 1)
+        if (pointer_ != nullptr && ref_counter.ref_map[pointer_].load() == 1)
         {
             delete pointer_;
             ref_counter.ref_map.erase(pointer_);
@@ -177,23 +190,26 @@ private:
 template <class Type>
 class WeakPointer
 {
+ friend class SharedPointer<Type>;
 public:
     constexpr WeakPointer() = default;
 
     explicit WeakPointer(const SharedPointer<Type>& shared_ptr) noexcept
     {
+        assert(shared_ptr.pointer_ && "In constructor weak pointer received nullptr");
         pointer_ = shared_ptr.pointer_;
     }
 
     ~WeakPointer() = default;
 
-    WeakPointer& operator=(const WeakPointer& other)
+    WeakPointer& operator=(const WeakPointer& shared_ptr)
     {
-        if (this == &other)
+        assert(shared_ptr.pointer_ && "In operator= weak pointer received nullptr");
+        if (this == &shared_ptr)
         {
             return *this;
         }
-        pointer_ = other.pointer_;
+        pointer_ = shared_ptr.pointer_;
         return *this;
     }
 
