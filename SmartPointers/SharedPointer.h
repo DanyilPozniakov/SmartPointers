@@ -6,6 +6,10 @@
 #include <atomic>
 #include <mutex>
 
+template<class Type>
+class WeakPointer;
+
+
 
 class ExternalRefCounter
 {
@@ -39,7 +43,7 @@ public:
         pointer_ = ptr;
     }
 
-    explicit SharedPointer(const SharedPointer& other)
+    SharedPointer(const SharedPointer& other)
     {
         assert(other.pointer_ && "In constructor shared pointer received nullptr");
         pointer_ = other.pointer_;
@@ -151,6 +155,16 @@ public:
         return pointer_[index];
     }
 
+    bool operator==(const SharedPointer& other) const
+    {
+        return pointer_ == other.pointer_;
+    }
+
+    bool operator!=(const SharedPointer& other) const
+    {
+        return pointer_ != other.pointer_;
+    }
+
     Type* get() const
     {
         return pointer_;
@@ -183,6 +197,8 @@ public:
 
 private:
     Type* pointer_ = nullptr;
+
+    friend class WeakPointer<Type>;
 };
 
 
@@ -196,7 +212,6 @@ public:
 
     explicit WeakPointer(const SharedPointer<Type>& shared_ptr) noexcept
     {
-        assert(shared_ptr.pointer_ && "In constructor weak pointer received nullptr");
         pointer_ = shared_ptr.pointer_;
     }
 
@@ -204,7 +219,6 @@ public:
 
     WeakPointer& operator=(const WeakPointer& shared_ptr)
     {
-        assert(shared_ptr.pointer_ && "In operator= weak pointer received nullptr");
         if (this == &shared_ptr)
         {
             return *this;

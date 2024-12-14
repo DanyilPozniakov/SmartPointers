@@ -7,7 +7,7 @@
 #include <type_traits>
 
 
-// git commit -m "Update GCC support for IntrusivePtr"
+
 
 class RefCounter;
 

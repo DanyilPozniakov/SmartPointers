@@ -2,21 +2,30 @@
 #include <gtest/gtest.h>
 
 
-class TestObject : public RefCounter {
+//Generate with OpenAI o1
+
+
+class TestObject : public RefCounter
+{
 public:
-    TestObject(int v = 0) : value(v) {}
+    TestObject(int v = 0) : value(v)
+    {
+    }
+
     int value;
 };
 
 
 // Basic construction tests
-TEST(IntrusivePtrTest, DefaultConstruct) {
+TEST(IntrusivePtrTest, DefaultConstruct)
+{
     IntrusivePtr<TestObject> p;
     EXPECT_FALSE(p);
     EXPECT_EQ(p.get(), nullptr);
 }
 
-TEST(IntrusivePtrTest, ConstructFromRaw) {
+TEST(IntrusivePtrTest, ConstructFromRaw)
+{
     auto* obj = new TestObject(1);
     IntrusivePtr<TestObject> p(obj);
     EXPECT_TRUE(p);
@@ -25,7 +34,8 @@ TEST(IntrusivePtrTest, ConstructFromRaw) {
     EXPECT_FALSE(p);
 }
 
-TEST(IntrusivePtrTest, ConstructFromRawMultiple) {
+TEST(IntrusivePtrTest, ConstructFromRawMultiple)
+{
     auto* obj = new TestObject(2);
     IntrusivePtr<TestObject> p(obj);
     EXPECT_TRUE(p);
@@ -34,7 +44,8 @@ TEST(IntrusivePtrTest, ConstructFromRawMultiple) {
     EXPECT_FALSE(p);
 }
 
-TEST(IntrusivePtrTest, CopyConstruction) {
+TEST(IntrusivePtrTest, CopyConstruction)
+{
     auto* obj = new TestObject(3);
     IntrusivePtr<TestObject> p(obj);
     IntrusivePtr<TestObject> q(p);
@@ -46,7 +57,8 @@ TEST(IntrusivePtrTest, CopyConstruction) {
     EXPECT_FALSE(q);
 }
 
-TEST(IntrusivePtrTest, MoveConstruction) {
+TEST(IntrusivePtrTest, MoveConstruction)
+{
     auto* obj = new TestObject(4);
     IntrusivePtr<TestObject> p(obj);
     IntrusivePtr<TestObject> q(std::move(p));
@@ -57,7 +69,8 @@ TEST(IntrusivePtrTest, MoveConstruction) {
     EXPECT_FALSE(q);
 }
 
-TEST(IntrusivePtrTest, CopyAssignment) {
+TEST(IntrusivePtrTest, CopyAssignment)
+{
     auto* obj = new TestObject(5);
     IntrusivePtr<TestObject> p(obj);
     IntrusivePtr<TestObject> q;
@@ -70,7 +83,8 @@ TEST(IntrusivePtrTest, CopyAssignment) {
     EXPECT_FALSE(q);
 }
 
-TEST(IntrusivePtrTest, MoveAssignment) {
+TEST(IntrusivePtrTest, MoveAssignment)
+{
     auto* obj = new TestObject(6);
     IntrusivePtr<TestObject> p(obj);
     IntrusivePtr<TestObject> q;
@@ -82,7 +96,8 @@ TEST(IntrusivePtrTest, MoveAssignment) {
     EXPECT_FALSE(q);
 }
 
-TEST(IntrusivePtrTest, DereferenceOperator) {
+TEST(IntrusivePtrTest, DereferenceOperator)
+{
     auto* obj = new TestObject(7);
     IntrusivePtr<TestObject> p(obj);
     EXPECT_EQ((*p).value, 7);
@@ -90,7 +105,8 @@ TEST(IntrusivePtrTest, DereferenceOperator) {
     EXPECT_FALSE(p);
 }
 
-TEST(IntrusivePtrTest, ArrowOperator) {
+TEST(IntrusivePtrTest, ArrowOperator)
+{
     auto* obj = new TestObject(8);
     IntrusivePtr<TestObject> p(obj);
     EXPECT_EQ(p->value, 8);
@@ -98,7 +114,8 @@ TEST(IntrusivePtrTest, ArrowOperator) {
     EXPECT_FALSE(p);
 }
 
-TEST(IntrusivePtrTest, BoolConversion) {
+TEST(IntrusivePtrTest, BoolConversion)
+{
     IntrusivePtr<TestObject> p;
     EXPECT_FALSE(p);
     p = new TestObject(9);
@@ -107,14 +124,16 @@ TEST(IntrusivePtrTest, BoolConversion) {
     EXPECT_FALSE(p);
 }
 
-TEST(IntrusivePtrTest, Reset) {
+TEST(IntrusivePtrTest, Reset)
+{
     IntrusivePtr<TestObject> p(new TestObject(10));
     EXPECT_TRUE(p);
     p.reset();
     EXPECT_FALSE(p);
 }
 
-TEST(IntrusivePtrTest, Swap) {
+TEST(IntrusivePtrTest, Swap)
+{
     IntrusivePtr<TestObject> p(new TestObject(11));
     IntrusivePtr<TestObject> q(new TestObject(12));
     p.swap(q);
@@ -124,7 +143,8 @@ TEST(IntrusivePtrTest, Swap) {
     q.reset();
 }
 
-TEST(IntrusivePtrTest, MultipleRefs) {
+TEST(IntrusivePtrTest, MultipleRefs)
+{
     auto* obj = new TestObject(13);
     IntrusivePtr<TestObject> p(obj);
     {
@@ -136,7 +156,8 @@ TEST(IntrusivePtrTest, MultipleRefs) {
     EXPECT_FALSE(p);
 }
 
-TEST(IntrusivePtrTest, AssignNewRawPointer) {
+TEST(IntrusivePtrTest, AssignNewRawPointer)
+{
     IntrusivePtr<TestObject> p(new TestObject(14));
     p = new TestObject(15);
     EXPECT_EQ(p->value, 15);
@@ -144,14 +165,16 @@ TEST(IntrusivePtrTest, AssignNewRawPointer) {
     EXPECT_FALSE(p);
 }
 
-TEST(IntrusivePtrTest, DoubleReset) {
+TEST(IntrusivePtrTest, DoubleReset)
+{
     IntrusivePtr<TestObject> p(new TestObject(16));
     p.reset();
     p.reset();
     EXPECT_FALSE(p);
 }
 
-TEST(IntrusivePtrTest, SelfAssignment) {
+TEST(IntrusivePtrTest, SelfAssignment)
+{
     IntrusivePtr<TestObject> p(new TestObject(17));
     p = p;
     EXPECT_TRUE(p);
@@ -160,7 +183,8 @@ TEST(IntrusivePtrTest, SelfAssignment) {
     EXPECT_FALSE(p);
 }
 
-TEST(IntrusivePtrTest, SelfMoveAssignment) {
+TEST(IntrusivePtrTest, SelfMoveAssignment)
+{
     IntrusivePtr<TestObject> p(new TestObject(18));
     p = std::move(p);
     EXPECT_TRUE(p);
@@ -169,7 +193,8 @@ TEST(IntrusivePtrTest, SelfMoveAssignment) {
     EXPECT_FALSE(p);
 }
 
-TEST(IntrusivePtrTest, MultipleCopyAssignments) {
+TEST(IntrusivePtrTest, MultipleCopyAssignments)
+{
     auto* obj = new TestObject(19);
     IntrusivePtr<TestObject> p(obj);
     IntrusivePtr<TestObject> q;
@@ -183,7 +208,8 @@ TEST(IntrusivePtrTest, MultipleCopyAssignments) {
     r.reset();
 }
 
-TEST(IntrusivePtrTest, MultipleMoveAssignments) {
+TEST(IntrusivePtrTest, MultipleMoveAssignments)
+{
     IntrusivePtr<TestObject> p(new TestObject(20));
     IntrusivePtr<TestObject> q;
     IntrusivePtr<TestObject> r;
@@ -194,14 +220,16 @@ TEST(IntrusivePtrTest, MultipleMoveAssignments) {
     EXPECT_FALSE(r);
 }
 
-TEST(IntrusivePtrTest, ArrowOperatorMultipleTimes) {
+TEST(IntrusivePtrTest, ArrowOperatorMultipleTimes)
+{
     IntrusivePtr<TestObject> p(new TestObject(21));
     EXPECT_EQ(p->value, 21);
     EXPECT_EQ(p->value, 21);
     p.reset();
 }
 
-TEST(IntrusivePtrTest, DereferenceMultipleTimes) {
+TEST(IntrusivePtrTest, DereferenceMultipleTimes)
+{
     IntrusivePtr<TestObject> p(new TestObject(22));
     EXPECT_EQ((*p).value, 22);
     (*p).value = 23;
@@ -209,7 +237,8 @@ TEST(IntrusivePtrTest, DereferenceMultipleTimes) {
     p.reset();
 }
 
-TEST(IntrusivePtrTest, SwapMultipleTimes) {
+TEST(IntrusivePtrTest, SwapMultipleTimes)
+{
     IntrusivePtr<TestObject> p(new TestObject(24));
     IntrusivePtr<TestObject> q(new TestObject(25));
     IntrusivePtr<TestObject> r(new TestObject(26));
@@ -222,28 +251,32 @@ TEST(IntrusivePtrTest, SwapMultipleTimes) {
     r.reset();
 }
 
-TEST(IntrusivePtrTest, ResetAfterMove) {
+TEST(IntrusivePtrTest, ResetAfterMove)
+{
     IntrusivePtr<TestObject> p(new TestObject(27));
     IntrusivePtr<TestObject> q(std::move(p));
     q.reset();
     EXPECT_FALSE(q);
 }
 
-TEST(IntrusivePtrTest, CopyAfterReset) {
+TEST(IntrusivePtrTest, CopyAfterReset)
+{
     IntrusivePtr<TestObject> p(new TestObject(28));
     p.reset();
     IntrusivePtr<TestObject> q(p);
     EXPECT_FALSE(q);
 }
 
-TEST(IntrusivePtrTest, MoveAfterReset) {
+TEST(IntrusivePtrTest, MoveAfterReset)
+{
     IntrusivePtr<TestObject> p(new TestObject(29));
     p.reset();
     IntrusivePtr<TestObject> q(std::move(p));
     EXPECT_FALSE(q);
 }
 
-TEST(IntrusivePtrTest, MultipleOperations) {
+TEST(IntrusivePtrTest, MultipleOperations)
+{
     IntrusivePtr<TestObject> p;
     p = new TestObject(30);
     EXPECT_EQ(p->value, 30);
@@ -256,20 +289,23 @@ TEST(IntrusivePtrTest, MultipleOperations) {
     q.reset();
 }
 
-TEST(IntrusivePtrTest, MakeIntrusive) {
+TEST(IntrusivePtrTest, MakeIntrusive)
+{
     auto p = make_intrusive<TestObject>();
     EXPECT_TRUE(p);
     p.reset();
     EXPECT_FALSE(p);
 }
 
-TEST(IntrusivePtrTest, ValueCheck32) {
+TEST(IntrusivePtrTest, ValueCheck32)
+{
     IntrusivePtr<TestObject> p(new TestObject(32));
     EXPECT_EQ(p->value, 32);
     p.reset();
 }
 
-TEST(IntrusivePtrTest, ValueCheck33) {
+TEST(IntrusivePtrTest, ValueCheck33)
+{
     IntrusivePtr<TestObject> p(new TestObject(33));
     IntrusivePtr<TestObject> q(p);
     EXPECT_EQ(q->value, 33);
@@ -279,7 +315,8 @@ TEST(IntrusivePtrTest, ValueCheck33) {
     EXPECT_FALSE(q);
 }
 
-TEST(IntrusivePtrTest, ValueCheck34) {
+TEST(IntrusivePtrTest, ValueCheck34)
+{
     IntrusivePtr<TestObject> p(new TestObject(34));
     IntrusivePtr<TestObject> q(std::move(p));
     EXPECT_TRUE(q);
@@ -287,28 +324,32 @@ TEST(IntrusivePtrTest, ValueCheck34) {
     q.reset();
 }
 
-TEST(IntrusivePtrTest, AssignCheck35) {
+TEST(IntrusivePtrTest, AssignCheck35)
+{
     IntrusivePtr<TestObject> p;
     p = new TestObject(35);
     EXPECT_EQ(p->value, 35);
     p.reset();
 }
 
-TEST(IntrusivePtrTest, AssignCheck36) {
+TEST(IntrusivePtrTest, AssignCheck36)
+{
     IntrusivePtr<TestObject> p(new TestObject(36));
     p = new TestObject(37);
     EXPECT_EQ(p->value, 37);
     p.reset();
 }
 
-TEST(IntrusivePtrTest, ResetCheck) {
+TEST(IntrusivePtrTest, ResetCheck)
+{
     IntrusivePtr<TestObject> p(new TestObject(38));
     EXPECT_TRUE(p);
     p.reset();
     EXPECT_FALSE(p);
 }
 
-TEST(IntrusivePtrTest, MultipleRefsAgain) {
+TEST(IntrusivePtrTest, MultipleRefsAgain)
+{
     auto* obj = new TestObject(39);
     IntrusivePtr<TestObject> p(obj);
     {
@@ -321,7 +362,8 @@ TEST(IntrusivePtrTest, MultipleRefsAgain) {
     EXPECT_FALSE(p);
 }
 
-TEST(IntrusivePtrTest, LargeValueCheck) {
+TEST(IntrusivePtrTest, LargeValueCheck)
+{
     IntrusivePtr<TestObject> p(new TestObject(1000));
     EXPECT_EQ(p->value, 1000);
     p.reset();
@@ -329,7 +371,8 @@ TEST(IntrusivePtrTest, LargeValueCheck) {
 
 // Additional unique tests (no macros, more scenarios):
 
-TEST(IntrusivePtrTest, ChainAssignment) {
+TEST(IntrusivePtrTest, ChainAssignment)
+{
     IntrusivePtr<TestObject> p(new TestObject(2001));
     IntrusivePtr<TestObject> q(new TestObject(2002));
     IntrusivePtr<TestObject> r(new TestObject(2003));
@@ -342,7 +385,8 @@ TEST(IntrusivePtrTest, ChainAssignment) {
     q.reset();
 }
 
-TEST(IntrusivePtrTest, AssignFromGet) {
+TEST(IntrusivePtrTest, AssignFromGet)
+{
     IntrusivePtr<TestObject> p(new TestObject(2004));
     TestObject* raw = p.get();
     IntrusivePtr<TestObject> q;
@@ -352,7 +396,8 @@ TEST(IntrusivePtrTest, AssignFromGet) {
     p.reset();
 }
 
-TEST(IntrusivePtrTest, ComplexResetSequence) {
+TEST(IntrusivePtrTest, ComplexResetSequence)
+{
     IntrusivePtr<TestObject> p(new TestObject(2005));
     IntrusivePtr<TestObject> q(p);
     p.reset();
@@ -361,7 +406,8 @@ TEST(IntrusivePtrTest, ComplexResetSequence) {
     EXPECT_FALSE(q);
 }
 
-TEST(IntrusivePtrTest, MultipleSwaps) {
+TEST(IntrusivePtrTest, MultipleSwaps)
+{
     IntrusivePtr<TestObject> p(new TestObject(2006));
     IntrusivePtr<TestObject> q(new TestObject(2007));
     IntrusivePtr<TestObject> r(new TestObject(2008));
@@ -376,14 +422,16 @@ TEST(IntrusivePtrTest, MultipleSwaps) {
     r.reset();
 }
 
-TEST(IntrusivePtrTest, AssignNullMultipleTimes) {
+TEST(IntrusivePtrTest, AssignNullMultipleTimes)
+{
     IntrusivePtr<TestObject> p(new TestObject(2009));
     p = (TestObject*)nullptr;
     p = (TestObject*)nullptr;
     EXPECT_FALSE(p);
 }
 
-TEST(IntrusivePtrTest, MoveToSelfIndirect) {
+TEST(IntrusivePtrTest, MoveToSelfIndirect)
+{
     IntrusivePtr<TestObject> p(new TestObject(2010));
     IntrusivePtr<TestObject> q(p);
     p = std::move(q);
@@ -392,7 +440,8 @@ TEST(IntrusivePtrTest, MoveToSelfIndirect) {
     p.reset();
 }
 
-TEST(IntrusivePtrTest, CopyToSelfIndirect) {
+TEST(IntrusivePtrTest, CopyToSelfIndirect)
+{
     IntrusivePtr<TestObject> p(new TestObject(2011));
     IntrusivePtr<TestObject> q(p);
     p = q;
@@ -401,20 +450,23 @@ TEST(IntrusivePtrTest, CopyToSelfIndirect) {
     p.reset();
 }
 
-TEST(IntrusivePtrTest, ResetOnEmpty) {
+TEST(IntrusivePtrTest, ResetOnEmpty)
+{
     IntrusivePtr<TestObject> p;
     p.reset();
     p.reset();
     EXPECT_FALSE(p);
 }
 
-TEST(IntrusivePtrTest, AssignToItselfWithNull) {
+TEST(IntrusivePtrTest, AssignToItselfWithNull)
+{
     IntrusivePtr<TestObject> p;
     p = p;
     EXPECT_FALSE(p);
 }
 
-TEST(IntrusivePtrTest, AssignToDifferentObjectsMultipleTimes) {
+TEST(IntrusivePtrTest, AssignToDifferentObjectsMultipleTimes)
+{
     IntrusivePtr<TestObject> p;
     p = new TestObject(2012);
     p = new TestObject(2013);
@@ -423,7 +475,8 @@ TEST(IntrusivePtrTest, AssignToDifferentObjectsMultipleTimes) {
     p.reset();
 }
 
-TEST(IntrusivePtrTest, AssignFromFunction) {
+TEST(IntrusivePtrTest, AssignFromFunction)
+{
     auto createObj = []() { return new TestObject(2015); };
     IntrusivePtr<TestObject> p;
     p = createObj();
@@ -431,28 +484,32 @@ TEST(IntrusivePtrTest, AssignFromFunction) {
     p.reset();
 }
 
-TEST(IntrusivePtrTest, SwapWithItself) {
+TEST(IntrusivePtrTest, SwapWithItself)
+{
     IntrusivePtr<TestObject> p(new TestObject(2016));
     p.swap(p);
     EXPECT_EQ(p->value, 2016);
     p.reset();
 }
 
-TEST(IntrusivePtrTest, MoveAssignmentFromEmptyToNonEmpty) {
+TEST(IntrusivePtrTest, MoveAssignmentFromEmptyToNonEmpty)
+{
     IntrusivePtr<TestObject> p(new TestObject(2017));
     IntrusivePtr<TestObject> q;
     p = std::move(q);
     EXPECT_FALSE(p);
 }
 
-TEST(IntrusivePtrTest, CopyAssignmentFromEmptyToNonEmpty) {
+TEST(IntrusivePtrTest, CopyAssignmentFromEmptyToNonEmpty)
+{
     IntrusivePtr<TestObject> p(new TestObject(2018));
     IntrusivePtr<TestObject> q;
     p = q;
     EXPECT_FALSE(p);
 }
 
-TEST(IntrusivePtrTest, MoveAssignmentFromNonEmptyToEmpty) {
+TEST(IntrusivePtrTest, MoveAssignmentFromNonEmptyToEmpty)
+{
     IntrusivePtr<TestObject> p;
     IntrusivePtr<TestObject> q(new TestObject(2019));
     p = std::move(q);
@@ -461,19 +518,24 @@ TEST(IntrusivePtrTest, MoveAssignmentFromNonEmptyToEmpty) {
     p.reset();
 }
 
-TEST(IntrusivePtrTest, ChainedCopies) {
+TEST(IntrusivePtrTest, ChainedCopies)
+{
     IntrusivePtr<TestObject> p(new TestObject(2020));
     IntrusivePtr<TestObject> a(p);
     IntrusivePtr<TestObject> b(a);
     IntrusivePtr<TestObject> c(b);
     IntrusivePtr<TestObject> d(c);
     EXPECT_EQ(d->value, 2020);
-    a.reset(); b.reset(); c.reset(); d.reset();
+    a.reset();
+    b.reset();
+    c.reset();
+    d.reset();
     p.reset();
     EXPECT_FALSE(p);
 }
 
-TEST(IntrusivePtrTest, ChainedMoves) {
+TEST(IntrusivePtrTest, ChainedMoves)
+{
     IntrusivePtr<TestObject> p(new TestObject(2021));
     IntrusivePtr<TestObject> a(std::move(p));
     IntrusivePtr<TestObject> b(std::move(a));
@@ -483,14 +545,16 @@ TEST(IntrusivePtrTest, ChainedMoves) {
     c.reset();
 }
 
-TEST(IntrusivePtrTest, AssignRawPointerThenNull) {
+TEST(IntrusivePtrTest, AssignRawPointerThenNull)
+{
     IntrusivePtr<TestObject> p;
     p = new TestObject(2022);
     p = (TestObject*)nullptr;
     EXPECT_FALSE(p);
 }
 
-TEST(IntrusivePtrTest, LargeChainReset) {
+TEST(IntrusivePtrTest, LargeChainReset)
+{
     IntrusivePtr<TestObject> p(new TestObject(2023));
     IntrusivePtr<TestObject> q(p);
     IntrusivePtr<TestObject> r(q);
@@ -500,8 +564,10 @@ TEST(IntrusivePtrTest, LargeChainReset) {
     EXPECT_FALSE(p);
 }
 
-TEST(IntrusivePtrTest, AssignAndResetInLoop) {
-    for (int i = 0; i < 5; ++i) {
+TEST(IntrusivePtrTest, AssignAndResetInLoop)
+{
+    for (int i = 0; i < 5; ++i)
+    {
         IntrusivePtr<TestObject> p(new TestObject(i));
         EXPECT_EQ(p->value, i);
         p.reset();
@@ -509,7 +575,8 @@ TEST(IntrusivePtrTest, AssignAndResetInLoop) {
     }
 }
 
-TEST(IntrusivePtrTest, MoveMultipleTimes) {
+TEST(IntrusivePtrTest, MoveMultipleTimes)
+{
     IntrusivePtr<TestObject> p(new TestObject(2024));
     IntrusivePtr<TestObject> q(std::move(p));
     IntrusivePtr<TestObject> r(std::move(q));
@@ -519,23 +586,29 @@ TEST(IntrusivePtrTest, MoveMultipleTimes) {
     s.reset();
 }
 
-TEST(IntrusivePtrTest, CopyMultipleTimes) {
+TEST(IntrusivePtrTest, CopyMultipleTimes)
+{
     IntrusivePtr<TestObject> p(new TestObject(2025));
     IntrusivePtr<TestObject> q(p);
     IntrusivePtr<TestObject> r(q);
     IntrusivePtr<TestObject> s(r);
     EXPECT_EQ(s->value, 2025);
-    p.reset(); q.reset(); r.reset(); s.reset();
+    p.reset();
+    q.reset();
+    r.reset();
+    s.reset();
 }
 
-TEST(IntrusivePtrTest, AssignNullToNonEmptyRepeatedly) {
+TEST(IntrusivePtrTest, AssignNullToNonEmptyRepeatedly)
+{
     IntrusivePtr<TestObject> p(new TestObject(2026));
     p = nullptr;
     p = nullptr;
     EXPECT_FALSE(p);
 }
 
-TEST(IntrusivePtrTest, AssignSelfRawPointer) {
+TEST(IntrusivePtrTest, AssignSelfRawPointer)
+{
     // This is unusual but let's test assigning get() to itself
     IntrusivePtr<TestObject> p(new TestObject(2027));
     p = p.get();
@@ -544,7 +617,8 @@ TEST(IntrusivePtrTest, AssignSelfRawPointer) {
     p.reset();
 }
 
-TEST(IntrusivePtrTest, SwapInChain) {
+TEST(IntrusivePtrTest, SwapInChain)
+{
     IntrusivePtr<TestObject> p(new TestObject(1));
     IntrusivePtr<TestObject> q(new TestObject(2));
     IntrusivePtr<TestObject> r(new TestObject(3));
@@ -554,10 +628,13 @@ TEST(IntrusivePtrTest, SwapInChain) {
     EXPECT_EQ(p->value, 1);
     EXPECT_EQ(q->value, 3);
     EXPECT_EQ(r->value, 2);
-    p.reset(); q.reset(); r.reset();
+    p.reset();
+    q.reset();
+    r.reset();
 }
 
-TEST(IntrusivePtrTest, ResetMultiplePointers) {
+TEST(IntrusivePtrTest, ResetMultiplePointers)
+{
     IntrusivePtr<TestObject> p(new TestObject(2031));
     IntrusivePtr<TestObject> q(new TestObject(2032));
     p.reset();
@@ -566,21 +643,24 @@ TEST(IntrusivePtrTest, ResetMultiplePointers) {
     EXPECT_FALSE(q);
 }
 
-TEST(IntrusivePtrTest, MoveFromResetObject) {
+TEST(IntrusivePtrTest, MoveFromResetObject)
+{
     IntrusivePtr<TestObject> p(new TestObject(2033));
     p.reset();
     IntrusivePtr<TestObject> q(std::move(p));
     EXPECT_FALSE(q);
 }
 
-TEST(IntrusivePtrTest, CopyFromResetObject) {
+TEST(IntrusivePtrTest, CopyFromResetObject)
+{
     IntrusivePtr<TestObject> p(new TestObject(2034));
     p.reset();
     IntrusivePtr<TestObject> q(p);
     EXPECT_FALSE(q);
 }
 
-TEST(IntrusivePtrTest, AssignAfterMultipleResets) {
+TEST(IntrusivePtrTest, AssignAfterMultipleResets)
+{
     IntrusivePtr<TestObject> p;
     p = new TestObject(2035);
     EXPECT_EQ(p->value, 2035);
@@ -591,7 +671,8 @@ TEST(IntrusivePtrTest, AssignAfterMultipleResets) {
     EXPECT_FALSE(p);
 }
 
-TEST(IntrusivePtrTest, ComplexAssignSequence) {
+TEST(IntrusivePtrTest, ComplexAssignSequence)
+{
     IntrusivePtr<TestObject> p(new TestObject(2037));
     IntrusivePtr<TestObject> q(new TestObject(2038));
     IntrusivePtr<TestObject> r(new TestObject(2039));
@@ -599,12 +680,16 @@ TEST(IntrusivePtrTest, ComplexAssignSequence) {
     q = r;
     r = p;
     EXPECT_EQ(r->value, 2038);
-    p.reset(); q.reset(); r.reset();
+    p.reset();
+    q.reset();
+    r.reset();
 }
 
-TEST(IntrusivePtrTest, NoLeakingAfterMultipleOperations) {
+TEST(IntrusivePtrTest, NoLeakingAfterMultipleOperations)
+{
     // Just stress test
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 10; ++i)
+    {
         IntrusivePtr<TestObject> p(new TestObject(i));
         IntrusivePtr<TestObject> q(std::move(p));
         q.reset();
@@ -612,7 +697,8 @@ TEST(IntrusivePtrTest, NoLeakingAfterMultipleOperations) {
     SUCCEED();
 }
 
-TEST(IntrusivePtrTest, AssignReturnedRawPointer) {
+TEST(IntrusivePtrTest, AssignReturnedRawPointer)
+{
     auto fn = [] { return new TestObject(2040); };
     IntrusivePtr<TestObject> p;
     p = fn();
@@ -620,7 +706,8 @@ TEST(IntrusivePtrTest, AssignReturnedRawPointer) {
     p.reset();
 }
 
-TEST(IntrusivePtrTest, SwapNonEmptyWithEmpty) {
+TEST(IntrusivePtrTest, SwapNonEmptyWithEmpty)
+{
     IntrusivePtr<TestObject> p(new TestObject(2041));
     IntrusivePtr<TestObject> q;
     p.swap(q);
@@ -629,7 +716,8 @@ TEST(IntrusivePtrTest, SwapNonEmptyWithEmpty) {
     q.reset();
 }
 
-TEST(IntrusivePtrTest, ManyRefsInNestedScopes) {
+TEST(IntrusivePtrTest, ManyRefsInNestedScopes)
+{
     IntrusivePtr<TestObject> p(new TestObject(2042));
     {
         IntrusivePtr<TestObject> a(p);
@@ -643,14 +731,16 @@ TEST(IntrusivePtrTest, ManyRefsInNestedScopes) {
     p.reset();
 }
 
-TEST(IntrusivePtrTest, AssignToDifferentPointerThenReset) {
+TEST(IntrusivePtrTest, AssignToDifferentPointerThenReset)
+{
     IntrusivePtr<TestObject> p(new TestObject(2043));
     p = new TestObject(2044);
     EXPECT_EQ(p->value, 2044);
     p.reset();
 }
 
-TEST(IntrusivePtrTest, MoveChainCheck) {
+TEST(IntrusivePtrTest, MoveChainCheck)
+{
     IntrusivePtr<TestObject> p(new TestObject(2045));
     IntrusivePtr<TestObject> q(std::move(p));
     IntrusivePtr<TestObject> r(std::move(q));
@@ -661,12 +751,16 @@ TEST(IntrusivePtrTest, MoveChainCheck) {
     s.reset();
 }
 
-TEST(IntrusivePtrTest, CopyChainCheck) {
+TEST(IntrusivePtrTest, CopyChainCheck)
+{
     IntrusivePtr<TestObject> p(new TestObject(2046));
     IntrusivePtr<TestObject> q(p);
     IntrusivePtr<TestObject> r(q);
     IntrusivePtr<TestObject> s(r);
     EXPECT_EQ(s->value, 2046);
-    p.reset(); q.reset(); r.reset(); s.reset();
+    p.reset();
+    q.reset();
+    r.reset();
+    s.reset();
     EXPECT_FALSE(p);
 }
